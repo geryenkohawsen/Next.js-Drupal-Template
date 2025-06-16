@@ -1,38 +1,43 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export function DraftAlertClient({
   isDraftEnabled,
 }: {
   isDraftEnabled: boolean
 }) {
-  const [showDraftAlert, setShowDraftAlert] = useState<boolean>(false)
+  const [show, setShow] = useState(false)
+  const router = useRouter()
 
+  /* Show banner only in the top-level window (not inside the Drupal iframe) */
   useEffect(() => {
-    setShowDraftAlert(isDraftEnabled && window.top === window.self)
+    setShow(isDraftEnabled && window.top === window.self)
   }, [isDraftEnabled])
 
-  if (!showDraftAlert) {
-    return null
-  }
+  if (!show) return null
 
-  function buttonHandler() {
-    void fetch("/api/disable-draft")
-    setShowDraftAlert(false)
+  async function exitDraft() {
+    /* 1 · Clear the preview cookies on the server */
+    await fetch("/api/disable-draft", { credentials: "include" })
+
+    /* 2 · Navigate to the site’s top page */
+    router.replace("/") // or router.push("/") if you prefer history
+
+    /* 3 · Force a fresh server render on that new route */
+    router.refresh()
   }
 
   return (
     <div className="sticky top-0 left-0 z-50 w-full px-2 py-1 text-center text-white bg-black">
-      <p className="mb-0">
-        This page is a draft.
-        <button
-          className="inline-block ml-3 rounded border px-1.5 hover:bg-white hover:text-black active:bg-gray-200 active:text-gray-500"
-          onClick={buttonHandler}
-        >
-          Exit draft mode
-        </button>
-      </p>
+      This page is a draft.
+      <button
+        onClick={exitDraft}
+        className="ml-3 rounded border px-1.5 hover:bg-white hover:text-black"
+      >
+        Exit draft mode
+      </button>
     </div>
   )
 }
