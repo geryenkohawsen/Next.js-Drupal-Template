@@ -6,49 +6,52 @@ import { BasicPage } from "@/components/drupal/BasicPage"
 import { drupal } from "@/lib/drupal"
 import type { Metadata, ResolvingMetadata } from "next"
 import type { DrupalNode, JsonApiParams } from "next-drupal"
+import { DrupalJsonApiParams } from "drupal-jsonapi-params"
 
 async function getNode(slug: string[]) {
-  const path = `/${slug.join("/")}`
+  const path = `/${slug.join("/")}` // e.g. “/about”
+  const draftData = await getDraftData() // { path, resourceVersion? }
 
-  const params: JsonApiParams = {}
+  // Build the query string with the helper.
+  const apiParams = new DrupalJsonApiParams()
 
-  const draftData = await getDraftData()
+  // 1. Include relationships only when we need them.
+  //    Equivalent to: ?include=field_image,uid
+  apiParams.addInclude(["field_image", "uid"])
 
-  if (draftData.path === path) {
-    params.resourceVersion = draftData.resourceVersion
+  // 2. If we are previewing this exact path, request the working-copy revision.
+  if (draftData?.path === path) {
+    apiParams.addCustomParam({
+      resourceVersion: draftData.resourceVersion ?? "rel:working-copy",
+    })
   }
 
-  // Translating the path also allows us to discover the entity type.
-  const translatedPath = await drupal.translatePath(path)
+  // 3. Translate the path to discover type + UUID.
+  const translated = await drupal.translatePath(path)
+  if (!translated) throw new Error("Resource not found", { cause: "NotFound" })
 
-  if (!translatedPath) {
-    throw new Error("Resource not found", { cause: "NotFound" })
-  }
+  const type = translated.jsonapi!.resourceName!
+  const uuid = translated.entity.uuid
 
-  const type = translatedPath.jsonapi?.resourceName!
-  const uuid = translatedPath.entity.uuid
-  const tag = `${translatedPath.entity.type}:${translatedPath.entity.id}`
+  console.log("👇👇===== apiParams =====👇👇")
+  console.log(apiParams.getQueryObject())
+  console.log("👆👆===== apiParams =====👆👆")
 
-  if (type === "node--article") {
-    params.include = "field_image,uid"
-  }
+  const params = apiParams.getQueryObject()
 
+  // 4. Fetch the node with the generated params object.
   const resource = await drupal.getResource<DrupalNode>(type, uuid, {
-    params,
-    cache: "force-cache",
-    next: {
-      revalidate: 3600,
-      // Replace `revalidate` with `tags` if using tag based revalidation.
-      // tags: [tag],
-    },
+    params: params, // ← helper returns the object
   })
+
+  console.log("👇👇===== resource =====👇👇")
+  console.log(resource)
+  console.log("👆👆===== resource =====👆👆")
 
   if (!resource) {
     throw new Error(
-      `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
-      {
-        cause: "DrupalError",
-      }
+      `Failed to fetch resource: ${translated.jsonapi?.individual}`,
+      { cause: "DrupalError" }
     )
   }
 
