@@ -8,10 +8,15 @@ interface ArticleTeaserProps {
 }
 
 export function ArticleTeaser({ node, ...props }: ArticleTeaserProps) {
+  console.log("TEST ArticleTeaser node →→→ ", node)
+
   return (
     <article {...props}>
       <Link href={node.path.alias} className="no-underline hover:text-blue-600">
-        <h2 className="mb-4 text-4xl font-bold">{node.title}</h2>
+        <h2 className="mb-4 text-4xl font-bold">
+          {node.links["working-copy"] ? "[リビジョンあり] " : ""}
+          {node.title}
+        </h2>
       </Link>
       <div className="mb-4 text-gray-600">
         {node.uid?.display_name ? (
