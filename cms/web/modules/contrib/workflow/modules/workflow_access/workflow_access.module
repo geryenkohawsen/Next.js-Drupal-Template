@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Provides node access permissions based on workflow states.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+use Drupal\workflow_access\Hook\WorkflowAccessHooks;
+
+/**
+ * Implements hook_help().
+ */
+#[LegacyHook]
+function workflow_access_help($route_name, RouteMatchInterface $route_match) {
+  return \Drupal::service(WorkflowAccessHooks::class)->help($route_name, $route_match);
+}
+
+/**
+ * Implements hook_node_access_explain().
+ *
+ * This is a Devel Node Access hook.
+ */
+#[LegacyHook]
+function workflow_access_node_access_explain($row) {
+  return \Drupal::service(WorkflowAccessHooks::class)->nodeAccessExplain($row);
+}
+
+/**
+ * Implements hook_node_access_records().
+ *
+ * Returns a list of grant records for the passed in node object.
+ * Invoked by NodeAccessControlHandler->acquireGrants(), node_access_rebuild().
+ */
+#[LegacyHook]
+function workflow_access_node_access_records(NodeInterface $node) {
+  return \Drupal::service(WorkflowAccessHooks::class)->nodeAccessRecords($node);
+}
+
+/**
+ * Implements hook_node_grants().
+ */
+#[LegacyHook]
+function workflow_access_node_grants(AccountInterface $account, $op) {
+  return \Drupal::service(WorkflowAccessHooks::class)->nodeGrants($account, $op);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for 'user_role'.
+ */
+#[LegacyHook]
+function workflow_access_user_role_insert(EntityInterface $entity) {
+  return \Drupal::service(WorkflowAccessHooks::class)->userRoleInsert($entity);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for 'user_role'.
+ */
+#[LegacyHook]
+function workflow_access_user_role_update(EntityInterface $entity) {
+  return \Drupal::service(WorkflowAccessHooks::class)->userRoleUpdate($entity);
+}
+
+/**
+ * Implements hook_workflow_operations().
+ */
+#[LegacyHook]
+function workflow_access_workflow_operations($op, ?EntityInterface $entity = NULL) {
+  return \Drupal::service(WorkflowAccessHooks::class)->workflowOperations($op, $entity);
+}

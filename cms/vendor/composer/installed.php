@@ -433,6 +433,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'drupal/workflow' => array(
+            'pretty_version' => '2.0.0',
+            'version' => '2.0.0.0',
+            'reference' => '2.0.0',
+            'type' => 'drupal-module',
+            'install_path' => __DIR__ . '/../../web/modules/contrib/workflow',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'drush/drush' => array(
             'pretty_version' => '13.6.0',
             'version' => '13.6.0.0',

@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the workflow module.
+ */
+
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_install().
+ */
+function workflow_install() {
+  $url = Url::fromRoute('user.admin_permissions', [],
+    ['fragment' => 'module-workflow']);
+  $message = t("Thanks for using Workflow module.
+    To start using a Workflow, first create a Workflow type,
+    then add a Workflow State field to your entity.
+    Please review which roles may 'participate in workflows'
+    <a href=':url'>on the Permissions page</a>.",
+    [':url' => $url->toString()]);
+  \Drupal::messenger()->addStatus($message);
+}
+
+/**
+ * Update from version beta1 to beta2 are not possible. Please re-install this module.
+ */
+function workflow_update_8001(&$sandbox) {
+  \Drupal::messenger()->addStatus("Update from version beta1 to beta2 is not possible. Please re-install this module.");
+}
+
+/**
+ * Please check Workflow permissions "Revert own\/any state transition' and "Edit own\/any comments" before continuing.
+ */
+function workflow_update_8002(&$sandbox) {
+  \Drupal::messenger()->addStatus("Please check Workflow permissions 'Revert own/any state transition and 'Edit own/any comments' before continuing.");
+}
+
+/**
+ * This will optionally install a History View and an Action.
+ */
+function workflow_update_8003(&$sandbox) {
+  // In version 8.x-1.8.
+}
+
+/**
+ * This will fix the Error 'Mismatched entity and/or field definitions' on /admin/reports/status.
+ */
+function workflow_update_8006(&$sandbox) {
+  // In version 8.x-1.19.
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $entity_type_manager->clearCachedDefinitions();
+
+  $entity_type_ids = [];
+  $change_summary = \Drupal::service('entity.definition_update_manager')->getChangeSummary();
+  foreach ($change_summary as $entity_type_id => $change_list) {
+    $entity_type = $entity_type_manager->getDefinition($entity_type_id);
+    \Drupal::entityDefinitionUpdateManager()->installEntityType($entity_type);
+    $entity_type_ids[] = $entity_type_id;
+  }
+  drupal_flush_all_caches();
+
+  return t("Updated the entity type(s): @entity_type_ids", [
+    '@entity_type_ids' => implode(', ', $entity_type_ids),
+  ]);
+}

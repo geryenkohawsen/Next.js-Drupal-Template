@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Workflow access installation.
+ */
+
+use Drupal\Core\Database\Database;
+
+/**
+ * Force rebuild of node access.
+ */
+function workflow_access_uninstall() {
+  node_access_needs_rebuild(TRUE);
+}
+
+/**
+ * Remove table workflow_access. All current settings are lost!
+ */
+function workflow_access_update_8002(&$sandbox) {
+  // Remove the table. Data is now in config.
+  /** @var \Drupal\Core\Database\Schema $schema */
+  $schema = Database::getConnection()->schema();
+  $schema->dropTable('workflow_access');
+  // Force rebuild of node access.
+  node_access_needs_rebuild(TRUE);
+}

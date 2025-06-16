@@ -1,0 +1,4 @@
+services:
+  Drupal\workflow_cleanup\Hook\WorkflowCleanupHooks:
+    class: Drupal\workflow_cleanup\Hook\WorkflowCleanupHooks
+    autowire: true

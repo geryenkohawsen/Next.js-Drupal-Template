@@ -1,0 +1,16 @@
+name: Workflow
+type: module
+description: 'Defines a field type with Workflows, containing customizable state transitions.'
+package: Workflow
+core_version_requirement: ^8.8 || ^9 || ^10 || ^11
+
+configure: entity.workflow_type.collection
+dependencies:
+  - drupal:field
+  - drupal:options
+  - drupal:user
+
+# Information added by Drupal.org packaging script on 2025-04-18
+version: '2.0.0'
+project: 'workflow'
+datestamp: 1745016107

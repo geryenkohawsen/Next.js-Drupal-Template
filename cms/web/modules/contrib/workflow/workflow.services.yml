@@ -1,0 +1,32 @@
+services:
+  workflow.manager:
+    class: Drupal\workflow\Entity\WorkflowManager
+    arguments: ['@config.factory', '@entity_field.manager', '@entity_type.manager', '@string_translation', '@module_handler']
+
+  workflow.route_subscriber:
+    class: Drupal\workflow\Routing\RouteSubscriber
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: event_subscriber }
+
+  # This class is for Backwards-compatible Hook implementation for Drupal versions from 10.1 to 11.0
+  # @see https://www.drupal.org/node/3442349
+  # @todo Remove when minimum supported version is 11.1.
+  Drupal\workflow\Hook\WorkflowHooks:
+    class: Drupal\workflow\Hook\WorkflowHooks
+    autowire: true
+  Drupal\workflow\Hook\WorkflowEntityHooks:
+    class: Drupal\workflow\Hook\WorkflowEntityHooks
+    autowire: true
+  Drupal\workflow\Hook\WorkflowFieldHooks:
+    class: Drupal\workflow\Hook\WorkflowFieldHooks
+    autowire: true
+  Drupal\workflow\Hook\WorkflowMigrateHooks:
+    class: Drupal\workflow\Hook\WorkflowMigrateHooks
+    autowire: true
+  Drupal\workflow\Hook\WorkflowTypeFormHooks:
+    class: Drupal\workflow\Hook\WorkflowTypeFormHooks
+    autowire: true
+  Drupal\workflow\Hook\WorkflowViewsHooks:
+    class: Drupal\workflow\Hook\WorkflowViewsHooks
+    autowire: true

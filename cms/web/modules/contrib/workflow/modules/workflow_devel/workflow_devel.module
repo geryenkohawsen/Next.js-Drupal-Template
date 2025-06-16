@@ -1,0 +1,166 @@
+<?php
+
+/**
+ * @file
+ * Development tools for Workflow module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\user\UserInterface;
+use Drupal\workflow\Entity\WorkflowTransitionInterface;
+use Drupal\workflow_devel\Hook\WorkflowDevelHooks;
+
+/* Hooks defined by workflow module. */
+
+/**
+ * Implements hook_workflow().
+ */
+#[LegacyHook]
+function workflow_devel_workflow($op, WorkflowTransitionInterface $transition, UserInterface $user) {
+  return \Drupal::service(WorkflowDevelHooks::class)->workflowDevelWorkflow($op, $transition, $user);
+}
+
+/**
+ * Implements hook_workflow_comment_alter().
+ */
+#[LegacyHook]
+function workflow_devel_workflow_comment_alter(&$comment, array &$context) {
+  \Drupal::service(WorkflowDevelHooks::class)->workflowCommentAlter($comment, $context);
+}
+
+/**
+ * Implements hook_workflow_history_alter().
+ */
+#[LegacyHook]
+function workflow_devel_workflow_history_alter(array &$context) {
+  \Drupal::service(WorkflowDevelHooks::class)->workflowHistoryAlter($context);
+}
+
+/**
+ * Implements hook_workflow_operations().
+ */
+#[LegacyHook]
+function workflow_devel_workflow_operations($op, ?EntityInterface $entity = NULL) {
+  return \Drupal::service(WorkflowDevelHooks::class)->workflowOperations($op, $entity);
+}
+
+/**
+ * Implements hook_workflow_permitted_state_transitions_alter().
+ */
+#[LegacyHook]
+function workflow_devel_workflow_permitted_state_transitions_alter(array &$transitions, array $context) {
+  \Drupal::service(WorkflowDevelHooks::class)->workflowPermittedStateTransitionsAlter($transitions, $context);
+}
+
+/* Hooks defined by core Form API: Change the Workflow Transition Form. */
+
+/**
+ * Implements hook_field_widget_single_element_WIDGET_TYPE_form_alter() for 'workflow_default'.
+ *
+ * A hook for changing the 'workflow_default' widget.
+ * hook_field_widget_form_alter() is deprecated.
+ * hook_field_widget_complete_form_alter is added.
+ *
+ * @see https://www.drupal.org/node/3180429
+ * @see https://www.drupal.org/node/2940780
+ * @see https://api.drupal.org/api/drupal/core%21modules%21field%21field.api.php/function/hook_field_widget_complete_form_alter/9.3.x
+ */
+#[LegacyHook]
+function workflow_devel_field_widget_single_element_workflow_default_form_alter(&$element, &$form_state, $context) {
+  \Drupal::service(WorkflowDevelHooks::class)->fieldWidgetSingleElementWorkflowDefaultFormAlter($element, $form_state, $context);
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+#[LegacyHook]
+function workflow_devel_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  \Drupal::service(WorkflowDevelHooks::class)->formAlter($form, $form_state, $form_id);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for 'workflow_transition_form'.
+ */
+#[LegacyHook]
+function workflow_devel_form_workflow_transition_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  \Drupal::service(WorkflowDevelHooks::class)->formWorkflowTransitionFormAlter($form, $form_state, $form_id);
+}
+
+/**
+ * Hooks defined by core: Change the operations column in an Entity list.
+ *
+ * @see EntityListBuilder::getOperations()
+ */
+
+ /**
+ * {@inheritdoc}
+ */
+#[LegacyHook]
+function workflow_devel_entity_operation($entities) {
+  return \Drupal::service(WorkflowDevelHooks::class)->entityOperation($entities);
+}
+
+/**
+ * {@inheritdoc}
+ */
+#[LegacyHook]
+function workflow_devel_entity_operation_alter(array $operations, EntityInterface $entity) {
+  return \Drupal::service(WorkflowDevelHooks::class)->entityOperationAlter($operations, $entity);
+}
+
+/*
+ * Hooks defined by core: hook_entity_CRUD.
+ *
+ * @see hook_entity_create(), hook_entity_update(), etc.
+ * @see hook_ENTITY_TYPE_create(), hook_ENTITY_TYPE_update(), etc.
+ */
+
+/**
+ * Implements hook_entity_create().
+ */
+#[LegacyHook]
+function workflow_devel_entity_create(EntityInterface $entity) {
+  \Drupal::service(WorkflowDevelHooks::class)->entityCreate($entity);
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+#[LegacyHook]
+function workflow_devel_entity_insert(EntityInterface $entity) {
+  \Drupal::service(WorkflowDevelHooks::class)->entityInsert($entity);
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+#[LegacyHook]
+function workflow_devel_entity_presave(EntityInterface $entity) {
+  \Drupal::service(WorkflowDevelHooks::class)->entityPreSave($entity);
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+#[LegacyHook]
+function workflow_devel_entity_update(EntityInterface $entity) {
+  \Drupal::service(WorkflowDevelHooks::class)->entityUpdate($entity);
+}
+
+/**
+ * Implements hook_entity_predelete().
+ */
+#[LegacyHook]
+function workflow_devel_entity_predelete(EntityInterface $entity) {
+  \Drupal::service(WorkflowDevelHooks::class)->entityPreDelete($entity);
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+#[LegacyHook]
+function workflow_devel_entity_delete(EntityInterface $entity) {
+  \Drupal::service(WorkflowDevelHooks::class)->entityDelete($entity);
+}

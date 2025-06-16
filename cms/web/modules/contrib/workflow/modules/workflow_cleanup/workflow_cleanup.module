@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ *   Provides a form to delete unused and outdated workflow states.
+ */
+
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\workflow_cleanup\Hook\WorkflowCleanupHooks;
+
+/**
+ * @file
+ * Cleans up Workflow cruft that may build up over time.
+ */
+
+/**
+ * Implements hook_help().
+ */
+#[LegacyHook]
+function workflow_cleanup_help($route_name, RouteMatchInterface $route_match) {
+  return \Drupal::service(WorkflowCleanupHooks::class)->help($route_name, $route_match);
+}
