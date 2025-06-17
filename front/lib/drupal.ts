@@ -10,6 +10,8 @@ export const drupal = new NextDrupal(baseUrl, {
     clientId,
     clientSecret,
   },
-  withAuth: true,
+  //! Enable to use authentication for all requests
+  //! Better to add on a page-by-page basis
+  // withAuth: true,
   debug: true,
 })
