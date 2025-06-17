@@ -20,6 +20,7 @@
         "drupal/core-project-message": "^10.4",
         "drupal/core-recommended": "^10.4",
         "drupal/next": "^2.0",
+        "drupal/simple_oauth": "^5.2",
         "drupal/workflow": "^2.0",
         "drush/drush": "^13.6"
     },
@@ -95,5 +96,8 @@
                 "      composer remove drupal/core-project-message"
             ]
         }
+    },
+    "require-dev": {
+        "drupal/devel_entity_updates": "^4.2"
     }
 }
