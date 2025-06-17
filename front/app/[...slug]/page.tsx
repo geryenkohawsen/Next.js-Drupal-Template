@@ -1,80 +1,75 @@
 /* ------------------------------------------------------------------ */
-/*  app/[...slug]/page.tsx ─ pure SSR                                 */
+/*  app/[...slug]/page.tsx — pure SSR (Next.js 15)                    */
 /* ------------------------------------------------------------------ */
-import { draftMode, headers } from "next/headers"
+import { draftMode } from "next/headers"
 import { notFound } from "next/navigation"
 import { getDraftData } from "next-drupal/draft"
+import { DrupalJsonApiParams } from "drupal-jsonapi-params"
+import { drupal } from "@/lib/drupal"
+
+import type { DrupalNode } from "next-drupal"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
-import { drupal } from "@/lib/drupal"
-import type { DrupalNode } from "next-drupal"
-import { DrupalJsonApiParams } from "drupal-jsonapi-params"
-import { DraftAlertServer } from "@/components/misc/DraftAlert/Server"
 
-/** true when this HTTP request is inside an <iframe> (Drupal preview) */
-async function requestIsIframe(): Promise<boolean> {
-  const hdrs = await headers()
-  const dest = hdrs.get("sec-fetch-dest")
-  return dest === "iframe" || dest === "frame"
-}
-
-/** fetches either the published node or, inside the preview iframe, the draft */
+/* ───────────────── helper ────────────────────────────────────────── */
 async function getNode(slug: string[]): Promise<DrupalNode> {
   const path = `/${slug.join("/")}`
-  const { isEnabled: isDraftMode } = await draftMode() // preview cookie
+  const { isEnabled } = await draftMode() // preview cookie?
   const draftData = await getDraftData() // { path, resourceVersion }
-  const inIframe = await requestIsIframe()
 
-  /* 1. Resolve alias → type + UUID (needs auth for unpublished paths) */
+  /* 1 - Resolve alias → type + UUID (needs auth for unpublished paths) */
   const translated = await drupal.translatePath(path, { withAuth: true })
   if (!translated) throw new Error("NotFound")
 
   const type = translated.jsonapi!.resourceName!
   const uuid = translated.entity.uuid
 
-  /* 2. Build query parameters */
+  /* 2 - Build query parameters */
   const params = new DrupalJsonApiParams().addInclude(
     type === "node--article" ? ["field_image", "uid"] : []
   )
 
-  const showWorkingCopy = inIframe && isDraftMode && draftData?.path === path
+  const isPreviewRequest = isEnabled && draftData?.path === path
 
-  if (showWorkingCopy) {
-    params.addCustomParam({
-      resourceVersion: draftData.resourceVersion ?? "rel:working-copy",
-    })
+  if (isPreviewRequest && draftData?.resourceVersion) {
+    // Forward exactly what Drupal asked for: working-copy OR latest-version
+    params.addCustomParam({ resourceVersion: draftData.resourceVersion })
   } else {
-    params.addFilter("status", "1") // published only
+    // Public request → only published revision
+    params.addFilter("status", "1")
   }
 
-  /* 3. Fetch the node */
+  /* 3 - Fetch the node */
   const node = await drupal.getResource<DrupalNode>(type, uuid, {
     params: params.getQueryObject(),
+    withAuth: true, // needs auth for unpublished nodes
   })
   if (!node) throw new Error("DrupalError")
+
   return node
 }
 
-/* ------------------------------------------------------------------ */
-/*  Page component (SSR)                                              */
-/* ------------------------------------------------------------------ */
+/* ───────────────── page component ────────────────────────────────── */
 export default async function NodePage({
   params,
 }: {
-  params: { slug: string[] }
+  params: Promise<{ slug: string[] }> // Next 15 hands this in as a Promise
 }) {
+  const { slug } = await params // resolve the promise
+
   let node: DrupalNode
   try {
-    node = await getNode(params.slug) // may throw → 404
+    node = await getNode(slug) // throws → 404
   } catch {
     notFound()
   }
 
-  const inIframe = await requestIsIframe()
-  if (!inIframe && node.status === false) {
-    // Public request hit an unpublished node → 404
-    notFound()
-  }
+  /* Guard: public visit must never see an unpublished node               */
+  /* (When draftMode cookie is set we skip this check, so if a preview    */
+  /*  somehow requests “working-copy” directly in a new tab it still      */
+  /*  works.)                                                             */
+  const { isEnabled } = await draftMode()
+  if (!isEnabled && node.status === false) notFound()
 
   return (
     <>
